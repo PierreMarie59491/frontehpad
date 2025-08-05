@@ -9,6 +9,8 @@ import { useUser } from "../contexts/UserContext";
 
 import ActivityFormModal from "../components/ActivityFormModal";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const ActivitySheetsPage = () => {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,8 +30,14 @@ const ActivitySheetsPage = () => {
       setLoading(true);
       setError(null);
       const queryParams = new URLSearchParams({ is_public: "true", limit: "100" });
-      const response = await fetch(`/api/activities/?${queryParams.toString()}`);
-      if (!response.ok) throw new Error("Erreur lors du chargement des activités");
+      const response = await fetch(`${API_URL}/api/activities/?${queryParams.toString()}`);
+
+      const contentType = response.headers.get("content-type");
+      if (!response.ok || !contentType.includes("application/json")) {
+        const text = await response.text();
+        throw new Error(`Réponse invalide : ${text.slice(0, 100)}`);
+      }
+
       const data = await response.json();
       setActivities(data);
     } catch (err) {
@@ -61,7 +69,7 @@ const ActivitySheetsPage = () => {
   const handleDeleteClick = async (id) => {
     if (!window.confirm("Confirmez-vous la suppression ?")) return;
     try {
-      const response = await fetch(`/api/activities/${id}`, { method: "DELETE" });
+      const response = await fetch(`${API_URL}/api/activities/${id}`, { method: "DELETE" });
       if (!response.ok) throw new Error("Erreur lors de la suppression");
       await fetchActivities();
     } catch (err) {
@@ -69,7 +77,7 @@ const ActivitySheetsPage = () => {
     }
   };
 
- const handleFormSubmit = async (formData) => {
+  const handleFormSubmit = async (formData) => {
     try {
       const payload = {
         ...formData,
@@ -86,23 +94,25 @@ const ActivitySheetsPage = () => {
             : [],
       };
 
-    const method = selectedActivity ? "PUT" : "POST";
-    const url = selectedActivity ? `/api/activities/${selectedActivity.id}` : `/api/activities/`;
-    const response = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      const method = selectedActivity ? "PUT" : "POST";
+      const url = selectedActivity
+        ? `${API_URL}/api/activities/${selectedActivity.id}`
+        : `${API_URL}/api/activities/`;
 
-    if (!response.ok) throw new Error("Erreur lors de la sauvegarde");
-    setModalOpen(false);
-    setSelectedActivity(null);
-    await fetchActivities();
-  } catch (err) {
-    alert(err.message);
-  }
-};
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
+      if (!response.ok) throw new Error("Erreur lors de la sauvegarde");
+      setModalOpen(false);
+      setSelectedActivity(null);
+      await fetchActivities();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   const ActivityCard = ({ activity }) => (
     <Card
@@ -148,7 +158,6 @@ const ActivitySheetsPage = () => {
 
       {!loading && !error && (
         selectedActivity ? (
-          // Ici tu peux mettre un composant de détail si tu veux
           <div className="mb-6">
             <h2 className="text-xl font-semibold">{selectedActivity.title}</h2>
             <p>{selectedActivity.description}</p>
