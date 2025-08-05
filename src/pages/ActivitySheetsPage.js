@@ -160,6 +160,7 @@ const ActivitySheetsPage = () => {
         selectedActivity ? (
   <div className="mb-6 space-y-4 p-4 border rounded-md shadow">
     <h2 className="text-2xl font-bold">{selectedActivity.title}</h2>
+          <p className="text-sm text-gray-500">Publié par : <strong>{selectedActivity.author}</strong></p>
     <Badge variant="secondary">{selectedActivity.category}</Badge>
 
     <p className="mt-2">{selectedActivity.description}</p>
