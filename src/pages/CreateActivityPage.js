@@ -6,7 +6,6 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { Badge } from "../components/ui/badge";
 import { useToast } from "../hooks/use-toast";
 
 const CreateActivityPage = () => {
@@ -22,81 +21,110 @@ const CreateActivityPage = () => {
     description: "",
     difficulty: "",
     objectives: [""],
-    material: [""]
+    material: [""],
   });
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleArrayChange = (field, index, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
+      [field]: prev[field].map((item, i) => (i === index ? value : item)),
     }));
   };
 
   const addArrayItem = (field) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: [...prev[field], ""]
+      [field]: [...prev[field], ""],
     }));
   };
 
   const removeArrayItem = (field, index) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
+      [field]: prev[field].filter((_, i) => i !== index),
     }));
+  };
+
+  const validateForm = () => {
+    if (
+      !formData.title.trim() ||
+      !formData.category.trim() ||
+      !formData.duration.trim() ||
+      !formData.participants.trim() ||
+      !formData.description.trim() ||
+      !formData.difficulty.trim()
+    ) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive",
+      });
+      return false;
+    }
+    // Check objectives and material have at least one non-empty
+    if (formData.objectives.every((obj) => obj.trim() === "")) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez ajouter au moins un objectif",
+        variant: "destructive",
+      });
+      return false;
+    }
+    if (formData.material.every((mat) => mat.trim() === "")) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez ajouter au moins un matériel",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Validate form
-    if (!formData.title || !formData.category || !formData.duration || 
-        !formData.participants || !formData.description || !formData.difficulty) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez remplir tous les champs obligatoires",
-        variant: "destructive"
-      });
-      return;
-    }
 
-    // Create activity object
+    if (!validateForm()) return;
+
     const newActivity = {
       id: `user_${Date.now()}`,
       ...formData,
       author: user.name,
-      objectives: formData.objectives.filter(obj => obj.trim() !== ""),
-      material: formData.material.filter(mat => mat.trim() !== ""),
-      createdAt: new Date().toISOString()
+      objectives: formData.objectives.filter((obj) => obj.trim() !== ""),
+      material: formData.material.filter((mat) => mat.trim() !== ""),
+      createdAt: new Date().toISOString(),
     };
 
-    // Save to user's created activities
+    // Mise à jour user avec la nouvelle activité
     const updatedUser = {
       ...user,
-      createdActivities: [...user.createdActivities, newActivity]
+      createdActivities: [...(user.createdActivities || []), newActivity],
     };
     updateUser(updatedUser);
 
-    // Add XP and unlock badge
     addXP(50);
-    if (user.createdActivities.length === 0) {
+
+    if (!user.createdActivities || user.createdActivities.length === 0) {
       unlockBadge("creator");
     }
 
     toast({
       title: "Succès ! 🎉",
       description: "Activité créée avec succès (+50 XP)",
-      className: "bg-green-100 border-green-500"
+      className: "bg-green-100 border-green-500",
     });
 
     navigate("/activities");
+
+    // Optionnel : reset formulaire si tu restes sur la page
+    // setFormData({ title: "", category: "", duration: "", participants: "", description: "", difficulty: "", objectives: [""], material: [""] });
   };
 
   return (
@@ -110,7 +138,7 @@ const CreateActivityPage = () => {
 
       <form onSubmit={handleSubmit}>
         <div className="space-y-6">
-          {/* Basic Information */}
+          {/* Informations Générales */}
           <Card>
             <CardHeader>
               <CardTitle>📝 Informations Générales</CardTitle>
@@ -128,7 +156,10 @@ const CreateActivityPage = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Catégorie *</label>
-                  <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => handleInputChange("category", value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner une catégorie" />
                     </SelectTrigger>
@@ -164,7 +195,10 @@ const CreateActivityPage = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Difficulté *</label>
-                  <Select value={formData.difficulty} onValueChange={(value) => handleInputChange("difficulty", value)}>
+                  <Select
+                    value={formData.difficulty}
+                    onValueChange={(value) => handleInputChange("difficulty", value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Niveau" />
                     </SelectTrigger>
@@ -190,7 +224,7 @@ const CreateActivityPage = () => {
             </CardContent>
           </Card>
 
-          {/* Objectives */}
+          {/* Objectifs */}
           <Card>
             <CardHeader>
               <CardTitle>🎯 Objectifs</CardTitle>
@@ -217,19 +251,14 @@ const CreateActivityPage = () => {
                     )}
                   </div>
                 ))}
-                <Button
-                  type="button"
-                  onClick={() => addArrayItem("objectives")}
-                  variant="outline"
-                  size="sm"
-                >
+                <Button type="button" onClick={() => addArrayItem("objectives")} variant="outline" size="sm">
                   + Ajouter un objectif
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Material */}
+          {/* Matériel */}
           <Card>
             <CardHeader>
               <CardTitle>🛠️ Matériel Nécessaire</CardTitle>
@@ -256,12 +285,7 @@ const CreateActivityPage = () => {
                     )}
                   </div>
                 ))}
-                <Button
-                  type="button"
-                  onClick={() => addArrayItem("material")}
-                  variant="outline"
-                  size="sm"
-                >
+                <Button type="button" onClick={() => addArrayItem("material")} variant="outline" size="sm">
                   + Ajouter du matériel
                 </Button>
               </div>
