@@ -149,7 +149,7 @@ const HomePage = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    /*  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="hover:shadow-lg transition-shadow duration-300">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -195,7 +195,7 @@ const HomePage = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </div> */
   );
 };
 
