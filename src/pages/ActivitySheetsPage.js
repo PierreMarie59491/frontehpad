@@ -158,9 +158,39 @@ const ActivitySheetsPage = () => {
 
       {!loading && !error && (
         selectedActivity ? (
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold">{selectedActivity.title}</h2>
-            <p>{selectedActivity.description}</p>
+  <div className="mb-6 space-y-4 p-4 border rounded-md shadow">
+    <h2 className="text-2xl font-bold">{selectedActivity.title}</h2>
+    <Badge variant="secondary">{selectedActivity.category}</Badge>
+
+    <p className="mt-2">{selectedActivity.description}</p>
+
+    <div className="flex space-x-4 text-sm text-gray-600">
+      <div>⏱️ Durée: {selectedActivity.duration}</div>
+      <div>👥 Participants: {selectedActivity.participants}</div>
+      <div>Difficulté: <Badge variant="outline">{selectedActivity.difficulty}</Badge></div>
+    </div>
+
+    {selectedActivity.objectives && selectedActivity.objectives.length > 0 && (
+      <div>
+        <h3 className="font-semibold">🎯 Objectifs</h3>
+        <ul className="list-disc list-inside">
+          {selectedActivity.objectives.map((obj, i) => (
+            <li key={i}>{obj}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {selectedActivity.material && selectedActivity.material.length > 0 && (
+      <div>
+        <h3 className="font-semibold">🛠️ Matériel Nécessaire</h3>
+        <ul className="list-disc list-inside">
+          {selectedActivity.material.map((mat, i) => (
+            <li key={i}>{mat}</li>
+          ))}
+        </ul>
+      </div>
+    )}
             <Button onClick={() => setSelectedActivity(null)}>Retour à la liste</Button>
           </div>
         ) : (
